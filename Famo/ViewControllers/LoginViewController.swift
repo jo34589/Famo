@@ -134,6 +134,15 @@ class LoginViewController: UIViewController {
         self.emailField.layer.borderColor = UIColor.systemGray.cgColor
         self.passwordField.layer.borderColor = UIColor.systemGray.cgColor
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        //자동로그인
+        if UserDefaults.standard.value(forKey: "UID") != nil {
+            LogManager.shared.loginSuccess()
+            self.navigateToNewMemo()
+        }
+    }
 }
 
 //MARK: rxMethods
@@ -214,19 +223,30 @@ extension LoginViewController {
         }
         
         self.loginManager.processLogin(email: email, password: password) { result, error in
-            if result {
-                //성공 로그
-                print("LoginViewController: Login Success")
-                LogManager.shared.loginSuccess(emailInput: email)
-                //자동 로그인 활성화
-                UserDefaults.standard.set(email, forKey: "userId")
-                //.string(forKey: "userId")
-                //다음 화면으로 넘기기.
+            if let result = result {
+                let uid = result.user.uid
+                UserDefaults.standard.set(uid, forKey: "UID")
+                LogManager.shared.loginSuccess()
                 self.navigateToNewMemo()
-            } else {
-                //alert
-                print("LoginViewController: Login Failed")
+            } else if let error = error {
+                
                 LogManager.shared.loginFailure(emailInput: email, passwordInput: password)
+                
+                self.loginManager.handleLoginError(error) { alertTitle, alertMessage in
+                    AppDelegate.openAlert(
+                        vc: self,
+                        title: alertTitle,
+                        message: alertMessage,
+                        alertStyle: .alert,
+                        actionTitles: ["확인"],
+                        actionStyles: [.default],
+                        actions: [
+                            { _ in
+                                ()
+                            }
+                        ]
+                    )
+                }
             }
         }
     }
@@ -235,27 +255,62 @@ extension LoginViewController {
         guard let email = self.emailField.text,
               !email.isEmpty else {
             //alert
+            AppDelegate.openAlert(
+                vc: self,
+                title: "이메일 확인",
+                message: "이메일이 없습니다.",
+                alertStyle: .alert,
+                actionTitles: ["확인"],
+                actionStyles: [.default],
+                actions: [{_ in
+                    ()
+                }])
+            
             return
         }
         guard let password = self.passwordField.text,
               !password.isEmpty else {
             //alert
+            AppDelegate.openAlert(
+                vc: self,
+                title: "비밀번호 확인",
+                message: "비밀번호가 없습니다.",
+                alertStyle: .alert,
+                actionTitles: ["확인"],
+                actionStyles: [.default],
+                actions: [{_ in
+                    ()
+                }])
             return
         }
         
         self.loginManager.processSignUp(email: email, password: password) { result, error in
-            
-            //LogManager.shared.
-            
-            if result {
-                //성공 로그
-                print("LoginViewController: Signup Success")
+            if let result = result {
+                let uid = result.user.uid
                 
-                self.performLogin()
+                UserDefaults.standard.set(uid, forKey: "UID")
+                LogManager.shared.signUpSuccess()
                 
-            } else {
-                //alert
-                print("LoginViewController: SignUp Failed")
+                self.navigateToNewMemo()
+            } else if let error = error {
+                
+                LogManager.shared.signUpFailure()
+                
+                self.loginManager.handleSigUpError(error) { alertTitle, alertMessage in
+                    AppDelegate.openAlert(
+                        vc: self,
+                        title: alertTitle,
+                        message: alertMessage,
+                        alertStyle: .alert,
+                        actionTitles: ["확인"],
+                        actionStyles: [.default],
+                        actions: [
+                            { _ in
+                                ()
+                            }
+                        ]
+                    )
+                }
             }
         }
     }

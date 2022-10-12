@@ -12,25 +12,30 @@ class LogManager {
     static var shared = LogManager()
     
     func appLeave() {
-        let id = UserDefaults.standard.string(forKey: "id") ?? "guest"
-        Analytics.logEvent("APP_LEAVE", parameters: ["userId":id])
+        let uid = UserDefaults.standard.string(forKey: "UID") ?? "unknown"
+        Analytics.logEvent("APP_LEAVE", parameters: ["UID":uid])
     }
     
     func appEnter() {
-        let id = UserDefaults.standard.string(forKey: "id") ?? "guest"
-        Analytics.logEvent("APP_ENTER", parameters: ["userId":id])
+        let uid = UserDefaults.standard.string(forKey: "UID") ?? "unknown"
+        Analytics.logEvent("APP_ENTER", parameters: ["UID":uid])
     }
     
     func loginFailure(emailInput: String, passwordInput: String) {
-        Analytics.logEvent("LOGIN_FAILURE",
-                           parameters: [
-                            "userId":emailInput,
-                            "password":passwordInput
-                           ])
+        Analytics.logEvent("LOGIN_FAILURE", parameters: [:])
     }
     
-    func loginSuccess(emailInput: String) {
-        Analytics.logEvent("LOGIN_SUCCESS", parameters: ["userId":emailInput])
+    func loginSuccess() {
+        let uid = UserDefaults.standard.string(forKey: "UID") ?? "unknown"
+        Analytics.logEvent("LOGIN_SUCCESS", parameters: ["UID":uid])
     }
     
+    func signUpSuccess() {
+        let uid = UserDefaults.standard.string(forKey: "UID") ?? "unknown"
+        Analytics.logEvent("SIGNUP_SUCCESS", parameters: ["UID":uid])
+    }
+    
+    func signUpFailure() {
+        Analytics.logEvent("SIGNUP_FAILURE", parameters: [:])
+    }
 }

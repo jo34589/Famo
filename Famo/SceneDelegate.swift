@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -25,7 +26,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.window = UIWindow(windowScene: windowScene)
 
         window?.backgroundColor = .systemBackground
-
+        
+        let _ = Auth.auth().addStateDidChangeListener { _, _ in
+            
+            print("Auth: AddStateDidChangeListener called.")
+        }
+        
         let rootViewController = LoginViewController()
         let rootNavigationController = UINavigationController(rootViewController: rootViewController)
                 
